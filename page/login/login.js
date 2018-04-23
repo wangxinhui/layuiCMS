@@ -12,13 +12,14 @@ layui.use('layer', function(){ //独立版的layer无需执行这一句
             },
             success:function (data) {
                 if (data.meta.success){
-                    location.href = "/index.html?token=" + data.data.token;
+                    location.href = "/index.html";
+                    localStorage.setItem("token",data.data.token);
                 }else{
                     layer.msg("用户信息不存在");
                 }
             },
             error:function (error) {
-                layer.msg("用户信息不存在" + error);
+                layer.msg("网络已断开了");
             }
         })
     })
