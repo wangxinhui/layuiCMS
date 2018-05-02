@@ -366,3 +366,25 @@ function donation(){
 	})
 }
 
+function test1() {
+    $.ajax({
+        url: '/api/web/api/test',
+        type:'post',
+        dataType:'json',
+        data:{
+            username:$("#username").val(),
+            password:$("#password").val(),
+            token: localStorage.getItem("token")
+        },
+        success:function (data) {
+            if (data.meta.success){
+                layer.msg(data.data.username);
+            }else{
+                layer.msg("用户信息不存在");
+            }
+        },
+        error:function (error) {
+            layer.msg("网络已断开了");
+        }
+    })
+}

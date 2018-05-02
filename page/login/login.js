@@ -3,7 +3,7 @@ layui.use('layer', function(){ //独立版的layer无需执行这一句
 
     $("#login").click(function () {
         $.ajax({
-            url: '/mlwc/api/login',
+            url: '/api/sso/api/login',
             type:'post',
             dataType:'json',
             data:{
