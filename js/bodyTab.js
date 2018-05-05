@@ -21,11 +21,11 @@ layui.define(["element","jquery"],function(exports){
 	//获取二级菜单数据
 	Tab.prototype.render = function() {
 		var url = this.tabConfig.url;
-		$.get(url,function(data){
+		$.get(url,{token:localStorage.getItem("token")},function(data){
 			//显示左侧菜单
 			if($(".navBar").html() == ''){
 				var _this = this;
-				$(".navBar").html(navBar(data)).height($(window).height()-245);
+				$(".navBar").html(navBar(data.data)).height($(window).height()-245);
 				element.init();  //初始化页面元素
 				$(window).resize(function(){
 					$(".navBar").height($(window).height()-245);

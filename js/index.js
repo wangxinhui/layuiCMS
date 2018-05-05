@@ -2,13 +2,14 @@ var $,tab,skyconsWeather;
 layui.config({
 	base : "js/"
 }).use(['bodyTab','form','element','layer','jquery'],function(){
+    console.log(localStorage.getItem("token"));
 	var form = layui.form(),
 		layer = layui.layer,
 		element = layui.element();
 		$ = layui.jquery;
 		tab = layui.bodyTab({
 			openTabNum : "50",  //最大可打开窗口数量
-			url : "json/navs.json" //获取菜单json地址
+			url : "/api/sso/api/permission/getPermissionList" //获取菜单json地址
 		});
 
 	//更换皮肤

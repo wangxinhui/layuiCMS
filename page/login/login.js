@@ -12,8 +12,8 @@ layui.use('layer', function(){ //独立版的layer无需执行这一句
             },
             success:function (data) {
                 if (data.meta.success){
-                    location.href = "/index.html";
                     localStorage.setItem("token",data.data.token);
+                    location.href = "/index.html";
                 }else{
                     layer.msg("用户信息不存在");
                 }
