@@ -2,7 +2,6 @@ var $,tab,skyconsWeather;
 layui.config({
 	base : "js/"
 }).use(['bodyTab','form','element','layer','jquery'],function(){
-    console.log(localStorage.getItem("token"));
 	var form = layui.form(),
 		layer = layui.layer,
 		element = layui.element();
