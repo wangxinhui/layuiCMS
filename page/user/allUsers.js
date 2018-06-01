@@ -1,86 +1,76 @@
 layui.config({
     base: "js/"
-}).use(['form', 'layer', 'jquery', 'laypage', 'check_effective'], function () {
+}).use(['form', 'layer', 'jquery', 'laypage'], function () {
     var form = layui.form(),
         layer = parent.layer === undefined ? layui.layer : parent.layer,
         laypage = layui.laypage,
-        $ = layui.jquery,
-        check_effective = layui.check_effective;
+        $ = layui.jquery;
 
-    //加载页面数据
-    var usersData = '';
-    $.get("/api/sso/api/user/getAllUsers", {token: localStorage.getItem(""), cont: 13, pages: 0}, function (data) {
-        check_effective.hello(data);
-        usersData = data.data;
-        if (window.sessionStorage.getItem("addUser")) {
-            var addUser = window.sessionStorage.getItem("addUser");
-            usersData = JSON.parse(addUser).concat(usersData);
-        }
-        //执行加载数据的方法
-        usersList();
-    })
+
+
+    var queryPara = {
+        token: localStorage.getItem("token"),
+        pages: 1,
+        cont: 10,
+    };
+
+    pageQuery();
+    function pageQuery() {
+        $.ajax({
+            url: "/api/sso/api/user/getAllUsers",
+            type: "post",
+            data: queryPara,
+            dataType: "json",
+            success: function (data) {
+                var datas = data.data.users;
+                var count = data.data.count;
+                var dataHtml = '';
+                if (datas.length != 0) {
+                    for (var i = 0; i < datas.length; i++) {
+                        dataHtml += '<tr>'
+                            + '<td>'+(i+1)+'</td>'
+                            + '<td>' + datas[i].username + '</td>'
+                            + '<td>' + datas[i].realname + '</td>'
+                            + '<td>' + datas[i].phone + '</td>'
+                            + '<td>' + datas[i].email + '</td>'
+                            + '<td>' + (datas[i].gender == 1 ? '男':'女') + '</td>'
+                            + '<td>'
+                            + '<a class="layui-btn layui-btn-mini users_edit" id="' + datas[i].user_id + '"><i class="iconfont icon-edit"></i> 编辑</a>'
+                            + '<a class="layui-btn layui-btn-danger layui-btn-mini users_del" data-id="' + datas[i].usersId + '"><i class="layui-icon">&#xe640;</i> 删除</a>'
+                            + '</td>'
+                            + '</tr>';
+                    }
+                } else {
+                    dataHtml = '<tr><td colspan="8">暂无数据</td></tr>';
+                }
+                $(".users_content").html(dataHtml);
+                resetPage(count, queryPara.pages);
+            }
+        })
+    }
+
+    function resetPage(count, pageIndex) {
+        var pages = count % queryPara.cont == 0 ? count / queryPara.cont : parseInt(count / queryPara.cont) + 1;
+        laypage({
+            cont: "page",
+            pages: pages,
+            curr: pageIndex,
+            jump: function (obj,first) {
+                if (!first){
+                    queryPara.pages = obj.curr;
+                    pageQuery();
+                }
+            }
+        })
+    }
 
     //查询
     $(".search_btn").click(function () {
-        var userArray = [];
         if ($(".search_input").val() != '') {
             var index = layer.msg('查询中，请稍候', {icon: 16, time: false, shade: 0.8});
             setTimeout(function () {
-                $.ajax({
-                    url: "../../json/usersList.json",
-                    type: "get",
-                    dataType: "json",
-                    success: function (data) {
-                        if (window.sessionStorage.getItem("addUser")) {
-                            var addUser = window.sessionStorage.getItem("addUser");
-                            usersData = JSON.parse(addUser).concat(data);
-                        } else {
-                            usersData = data;
-                        }
-                        for (var i = 0; i < usersData.length; i++) {
-                            var usersStr = usersData[i];
-                            var selectStr = $(".search_input").val();
-
-                            function changeStr(data) {
-                                var dataStr = '';
-                                var showNum = data.split(eval("/" + selectStr + "/ig")).length - 1;
-                                if (showNum > 1) {
-                                    for (var j = 0; j < showNum; j++) {
-                                        dataStr += data.split(eval("/" + selectStr + "/ig"))[j] + "<i style='color:#03c339;font-weight:bold;'>" + selectStr + "</i>";
-                                    }
-                                    dataStr += data.split(eval("/" + selectStr + "/ig"))[showNum];
-                                    return dataStr;
-                                } else {
-                                    dataStr = data.split(eval("/" + selectStr + "/ig"))[0] + "<i style='color:#03c339;font-weight:bold;'>" + selectStr + "</i>" + data.split(eval("/" + selectStr + "/ig"))[1];
-                                    return dataStr;
-                                }
-                            }
-
-                            //用户名
-                            if (usersStr.userName.indexOf(selectStr) > -1) {
-                                usersStr["userName"] = changeStr(usersStr.userName);
-                            }
-                            //用户邮箱
-                            if (usersStr.userEmail.indexOf(selectStr) > -1) {
-                                usersStr["userEmail"] = changeStr(usersStr.userEmail);
-                            }
-                            //性别
-                            if (usersStr.userSex.indexOf(selectStr) > -1) {
-                                usersStr["userSex"] = changeStr(usersStr.userSex);
-                            }
-                            //会员等级
-                            if (usersStr.userGrade.indexOf(selectStr) > -1) {
-                                usersStr["userGrade"] = changeStr(usersStr.userGrade);
-                            }
-                            if (usersStr.userName.indexOf(selectStr) > -1 || usersStr.userEmail.indexOf(selectStr) > -1 || usersStr.userSex.indexOf(selectStr) > -1 || usersStr.userGrade.indexOf(selectStr) > -1) {
-                                userArray.push(usersStr);
-                            }
-                        }
-                        usersData = userArray;
-                        usersList(usersData);
-                    }
-                })
-
+                queryPara.username = $(".search_input").val();
+                pageQuery();
                 layer.close(index);
             }, 2000);
         } else {
@@ -93,7 +83,7 @@ layui.config({
         var index = layui.layer.open({
             title: "添加会员",
             type: 2,
-            content: "addUser.html",
+            content: "addUser.html?id=0",
             success: function (layero, index) {
                 setTimeout(function () {
                     layui.layer.tips('点击此处返回会员列表', '.layui-layer-setwin .layui-layer-close', {
@@ -160,7 +150,27 @@ layui.config({
 
     //操作
     $("body").on("click", ".users_edit", function () {  //编辑
-        layer.alert('您点击了会员编辑按钮，由于是纯静态页面，所以暂时不存在编辑内容，后期会添加，敬请谅解。。。', {icon: 6, title: '文章编辑'});
+        var user_id = $(this).attr("id");
+        var index = layui.layer.open({
+            title: "添加会员",
+            type: 2,
+            content: "addUser.html?id=" + $(this).attr("id"),
+            success: function (layero, index) {
+                setTimeout(function () {
+                    layui.layer.tips('点击此处返回会员列表', '.layui-layer-setwin .layui-layer-close', {
+                        tips: 3
+                    });
+                }, 500)
+            },
+            end: function () {
+                console.log("I have OK");
+            }
+        })
+        //改变窗口大小时，重置弹窗的高度，防止超出可视区域（如F12调出debug的操作）
+        $(window).resize(function () {
+            layui.layer.full(index);
+        })
+        layui.layer.full(index);
     })
 
     $("body").on("click", ".users_del", function () {  //删除
@@ -177,42 +187,4 @@ layui.config({
         });
     })
 
-    function usersList() {
-        //渲染数据
-        function renderDate(data, curr) {
-            var dataHtml = '';
-            currData = usersData.concat().splice(curr * nums - nums, nums);
-            if (currData.length != 0) {
-                for (var i = 0; i < currData.length; i++) {
-                    dataHtml += '<tr>'
-                        + '<td><input type="checkbox" name="checked" lay-skin="primary" lay-filter="choose"></td>'
-                        + '<td>' + currData[i].username + '</td>'
-                        + '<td>' + currData[i].realname + '</td>'
-                        + '<td>' + currData[i].phone + '</td>'
-                        + '<td>' + currData[i].email + '</td>'
-                        + '<td>' + currData[i].gender + '</td>'
-                        + '<td>'
-                        + '<a class="layui-btn layui-btn-mini users_edit"><i class="iconfont icon-edit"></i> 编辑</a>'
-                        + '<a class="layui-btn layui-btn-danger layui-btn-mini users_del" data-id="' + data[i].usersId + '"><i class="layui-icon">&#xe640;</i> 删除</a>'
-                        + '</td>'
-                        + '</tr>';
-                }
-            } else {
-                dataHtml = '<tr><td colspan="8">暂无数据</td></tr>';
-            }
-            return dataHtml;
-        }
-
-        //分页
-        var nums = 13; //每页出现的数据量
-        laypage({
-            cont: "page",
-            pages: Math.ceil(usersData.length / nums),
-            jump: function (obj) {
-                $(".users_content").html(renderDate(usersData, obj.curr));
-                $('.users_list thead input[type="checkbox"]').prop("checked", false);
-                form.render();
-            }
-        })
-    }
 })
