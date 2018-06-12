@@ -7,7 +7,6 @@ layui.config({
         $ = layui.jquery;
 
 
-
     var queryPara = {
         token: localStorage.getItem("token"),
         pages: 1,
@@ -15,6 +14,7 @@ layui.config({
     };
 
     pageQuery();
+
     function pageQuery() {
         $.ajax({
             url: "/api/sso/api/user/getAllUsers",
@@ -28,12 +28,12 @@ layui.config({
                 if (datas.length != 0) {
                     for (var i = 0; i < datas.length; i++) {
                         dataHtml += '<tr>'
-                            + '<td>'+(i+1)+'</td>'
+                            + '<td>' + (i + 1) + '</td>'
                             + '<td>' + datas[i].username + '</td>'
                             + '<td>' + datas[i].realname + '</td>'
                             + '<td>' + datas[i].phone + '</td>'
                             + '<td>' + datas[i].email + '</td>'
-                            + '<td>' + (datas[i].gender == 1 ? '男':'女') + '</td>'
+                            + '<td>' + (datas[i].gender == 1 ? '男' : '女') + '</td>'
                             + '<td>'
                             + '<a class="layui-btn layui-btn-mini users_edit" id="' + datas[i].user_id + '"><i class="iconfont icon-edit"></i> 编辑</a>'
                             + '<a class="layui-btn layui-btn-danger layui-btn-mini users_del" data-id="' + datas[i].usersId + '"><i class="layui-icon">&#xe640;</i> 删除</a>'
@@ -55,8 +55,8 @@ layui.config({
             cont: "page",
             pages: pages,
             curr: pageIndex,
-            jump: function (obj,first) {
-                if (!first){
+            jump: function (obj, first) {
+                if (!first) {
                     queryPara.pages = obj.curr;
                     pageQuery();
                 }
@@ -175,16 +175,22 @@ layui.config({
 
     $("body").on("click", ".users_del", function () {  //删除
         var _this = $(this);
+        queryPara.user_id = _this.attr("data-id");
         layer.confirm('确定删除此用户？', {icon: 3, title: '提示信息'}, function (index) {
-            //_this.parents("tr").remove();
-            for (var i = 0; i < usersData.length; i++) {
-                if (usersData[i].usersId == _this.attr("data-id")) {
-                    usersData.splice(i, 1);
-                    usersList(usersData);
+            $.ajax({
+                url: "/api/sso/api/user/del",
+                type: "post",
+                data: queryPara,
+                dataType: "json",
+                success: function (data) {
+                    if (data.meta.success) {
+                        location.reload();
+                    }else {
+                        layer.msg("删除失败");
+                    }
                 }
-            }
-            layer.close(index);
+            });
         });
-    })
 
+    });
 })
