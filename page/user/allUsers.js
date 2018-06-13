@@ -36,7 +36,7 @@ layui.config({
                             + '<td>' + (datas[i].gender == 1 ? '男' : '女') + '</td>'
                             + '<td>'
                             + '<a class="layui-btn layui-btn-mini users_edit" id="' + datas[i].user_id + '"><i class="iconfont icon-edit"></i> 编辑</a>'
-                            + '<a class="layui-btn layui-btn-danger layui-btn-mini users_del" data-id="' + datas[i].usersId + '"><i class="layui-icon">&#xe640;</i> 删除</a>'
+                            + '<a class="layui-btn layui-btn-danger layui-btn-mini users_del" data-id="' + datas[i].user_id + '"><i class="layui-icon">&#xe640;</i> 删除</a>'
                             + '</td>'
                             + '</tr>';
                     }
@@ -175,7 +175,7 @@ layui.config({
 
     $("body").on("click", ".users_del", function () {  //删除
         var _this = $(this);
-        queryPara.user_id = _this.attr("data-id");
+        queryPara.ids = _this.attr("data-id");
         layer.confirm('确定删除此用户？', {icon: 3, title: '提示信息'}, function (index) {
             $.ajax({
                 url: "/api/sso/api/user/del",
@@ -183,11 +183,15 @@ layui.config({
                 data: queryPara,
                 dataType: "json",
                 success: function (data) {
+
                     if (data.meta.success) {
                         location.reload();
+
+                        layer.msg("删除成功");
                     }else {
                         layer.msg("删除失败");
                     }
+                    layer.close(index);
                 }
             });
         });
